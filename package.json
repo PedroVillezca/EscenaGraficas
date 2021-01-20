@@ -1,0 +1,23 @@
+{
+  "name": "escenagraficas",
+  "version": "1.0.0",
+  "description": "Proyecto en WebGL para la materia de Graficas Computacionales.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/PedroVillezca/EscenaGraficas.git"
+  },
+  "author": "Gibran,Guillermo,Pedro",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/PedroVillezca/EscenaGraficas/issues"
+  },
+  "homepage": "https://github.com/PedroVillezca/EscenaGraficas#readme",
+  "devDependencies": {
+    "eslint": "^7.18.0",
+    "eslint-config-google": "^0.14.0"
+  }
+}
