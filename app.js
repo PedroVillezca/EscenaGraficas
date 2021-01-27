@@ -94,6 +94,76 @@ function createLamp(x, y, z) {
   scene.add(lampLight);
 }
 
+function createMachine(x, y, z) {
+  const machineMaterial = new THREE
+      .MeshLambertMaterial({color: 0xbfc7cc});
+
+  const voidMaterial = new THREE.MeshBasicMaterial({color: 0x000000});
+
+  const buttonMaterial = new THREE.MeshLambertMaterial({color: 0xFF0000});
+
+  const machineFrontGeom = new THREE.BoxGeometry(10, 8, 2);
+  const machineFront = new THREE.Mesh(machineFrontGeom, machineMaterial);
+  machineFront.position.set(x, y + 4, z + 4.5);
+  scene.add(machineFront);
+
+  const machineBackGeom = new THREE.BoxGeometry(10, 8, 2);
+  const machineBack = new THREE.Mesh(machineBackGeom, machineMaterial);
+  machineBack.position.set(x, y + 4, z - 4.5);
+  scene.add(machineBack);
+
+  const machineTopGeom = new THREE.CylinderGeometry(
+      2, 2, 10, 32, 1, false, 0, Math.PI);
+  const machineTop = new THREE.Mesh(machineTopGeom, machineMaterial);
+  machineTop.position.set(x, y + 7, z);
+  machineTop.rotation.z += (Math.PI / 2);
+  machineTop.scale.set(1, 1, 2.5);
+  scene.add(machineTop);
+
+  const centerCylinderGeom = new THREE.CylinderGeometry(0.5, 0.5, 4, 32);
+  const centerCylinder = new THREE.Mesh(centerCylinderGeom, machineMaterial);
+  centerCylinder.position.set(x, y + 10, z);
+  scene.add(centerCylinder);
+
+  const leftCylinderGeom = new THREE.CylinderGeometry(0.5, 0.5, 4, 32);
+  const leftCylinder = new THREE.Mesh(leftCylinderGeom, machineMaterial);
+  leftCylinder.position.set(x - 3, y + 10, z);
+  scene.add(leftCylinder);
+
+  const rightCylinderGeom = new THREE.CylinderGeometry(0.5, 0.5, 4, 32);
+  const rightCylinder = new THREE.Mesh(rightCylinderGeom, machineMaterial);
+  rightCylinder.position.set(x + 3, y + 10, z);
+  scene.add(rightCylinder);
+
+  const leftVoidGeom = new THREE.BoxGeometry(1, 5, 8);
+  const leftVoid = new THREE.Mesh(leftVoidGeom, voidMaterial);
+  leftVoid.position.set(x - 4.4, y + 5.5, z);
+  scene.add(leftVoid);
+
+  const rightVoidGeom = new THREE.BoxGeometry(1, 5, 8);
+  const rightVoid = new THREE.Mesh(rightVoidGeom, voidMaterial);
+  rightVoid.position.set(x + 4.4, y + 5.5, z);
+  scene.add(rightVoid);
+
+  const centerButtonGeom = new THREE.CylinderGeometry(0.5, 0.5, 0.25, 32);
+  const centerButton = new THREE.Mesh(centerButtonGeom, buttonMaterial);
+  centerButton.position.set(x, y + 6, z + 5.5);
+  centerButton.rotation.x += (Math.PI / 2);
+  scene.add(centerButton);
+
+  const leftButtonGeom = new THREE.CylinderGeometry(0.5, 0.5, 0.25, 32);
+  const leftButton = new THREE.Mesh(leftButtonGeom, buttonMaterial);
+  leftButton.position.set(x - 3, y + 6, z + 5.5);
+  leftButton.rotation.x += (Math.PI / 2);
+  scene.add(leftButton);
+
+  const rightButtonGeom = new THREE.CylinderGeometry(0.5, 0.5, 0.25, 32);
+  const rightButton = new THREE.Mesh(rightButtonGeom, buttonMaterial);
+  rightButton.position.set(x + 3, y + 6, z + 5.5);
+  rightButton.rotation.x += (Math.PI / 2);
+  scene.add(rightButton);
+}
+
 function objectSetup() {
   const spawnObjectGeometry = new THREE.BoxGeometry(5, 8, 5);
   const spawnObjectMaterial = new THREE.MeshLambertMaterial(
@@ -105,6 +175,13 @@ function objectSetup() {
   );
   spawnObject.position.set(-30, 4, 15);
   scene.add( spawnObject );
+
+  const voidMaterial = new THREE.MeshBasicMaterial({color: 0x000000});
+
+  const spawnVoidGeom = new THREE.BoxGeometry(4.5, 4, 1);
+  const spawnVoid = new THREE.Mesh(spawnVoidGeom, voidMaterial);
+  spawnVoid.position.set(-30, 5, 12.75);
+  scene.add(spawnVoid);
 
   // Se crean el piso, el techo y las 4 paredes
   createWall(0, 0, 0, 70, 1, 40);
@@ -129,6 +206,17 @@ function objectSetup() {
   createLamp(-20, 19.25, 0);
   createLamp(0, 19.25, 0);
   createLamp(20, 19.25, 0);
+
+  // Creacion de la maquina interactuable
+  createMachine(0, 0, 10);
+
+  // Creacion de la canasta al final de la cinta
+  createWall(30, 1, 15, 5, 0.3, 3);
+  createWall(27.5, 1.85, 15, 0.3, 2, 3);
+  createWall(32.5, 1.85, 15, 0.3, 2, 3);
+
+  createWall(30, 1.85, 13.65, 5, 2, 0.3);
+  createWall(30, 1.85, 16.35, 5, 2, 0.3);
 }
 
 function main() {
