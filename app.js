@@ -65,6 +65,35 @@ function createWall(x, y, z, width, height, depth) {
   scene.add(wall);
 }
 
+function createLamp(x, y, z) {
+  // Material para la lampara
+  const material = new THREE.MeshLambertMaterial({color: 0x666000});
+
+  // Base de la lampara
+  const lampBaseGeom = new THREE.CylinderGeometry(2, 0.15, 0.5, 32);
+  const lampBase = new THREE.Mesh(lampBaseGeom, material);
+  lampBase.position.set(x, y, z);
+  scene.add(lampBase);
+
+  // Cable donde cuelga la lampara
+  const lampWireGeom = new THREE.CylinderGeometry(0.15, 0.15, 2, 32);
+  const lampWire = new THREE.Mesh(lampWireGeom, material);
+  lampWire.position.set(x, y - 1, z);
+  scene.add(lampWire);
+
+  // Base para el Foco
+  const lampConeGeom = new THREE.CylinderGeometry(0.15, 0.75, 1, 32);
+  const lampCone = new THREE.Mesh(lampConeGeom, material);
+  lampCone.position.set(x, y - 2.1, z);
+  scene.add(lampCone);
+
+  // Foco
+  const lampLightGeom = new THREE.SphereGeometry(0.5, 32, 32);
+  const lampLight = new THREE.Mesh(lampLightGeom, material);
+  lampLight.position.set(x, y - 2.35, z);
+  scene.add(lampLight);
+}
+
 function objectSetup() {
   const spawnObjectGeometry = new THREE.BoxGeometry(5, 8, 5);
   const spawnObjectMaterial = new THREE.MeshLambertMaterial(
@@ -95,6 +124,11 @@ function objectSetup() {
   createXConveyorBelt(20, 0, -15);
 
   createXConveyorBelt(0, 0, 10);
+
+  // Se crean las lamparas del techo
+  createLamp(-20, 19.25, 0);
+  createLamp(0, 19.25, 0);
+  createLamp(20, 19.25, 0);
 }
 
 function main() {
@@ -147,9 +181,17 @@ function main() {
   };
 
   // Fuente de luz para testing
-  const light = new THREE.PointLight(0xFFFFFF, 1.8, 500);
-  light.position.set(0, 17, 0);
-  scene.add(light);
+
+  const lightTop = new THREE.PointLight(0xFFFFFF, 1.8, 500);
+  lightTop.position.set(0, 17, 0);
+  scene.add(lightTop);
+
+  const lightDown = new THREE.PointLight(0xFFFFFF, 1.8, 500);
+  lightDown.position.set(0, -30, 0);
+  scene.add(lightDown);
+
+  const light = new THREE.AmbientLight( 0xFFFFFF, 0.5 ); // soft white light
+  scene.add( light );
 
   animate();
 }
