@@ -164,6 +164,22 @@ function createMachine(x, y, z) {
   scene.add(rightButton);
 }
 
+// Funcion para crear los objetos en la cinta transportadora
+function createTransportable(scene) {
+  const geom = new THREE.SphereGeometry(1.5, 32, 32);
+  const material = new THREE.MeshLambertMaterial({color: 0x00b8eb});
+  const sphere = new THREE.Mesh(geom, material);
+  sphere.position.set(-30, 5, 15); // Misma posicion que el spawnObject
+  scene.add(sphere);
+
+  return {
+    mesh: sphere, 
+    startMoving: false,
+    pathSegment: 0
+  };
+}
+
+
 function objectSetup() {
   const spawnObjectGeometry = new THREE.BoxGeometry(5, 8, 5);
   const spawnObjectMaterial = new THREE.MeshLambertMaterial(
@@ -217,6 +233,16 @@ function objectSetup() {
 
   createWall(30, 1.85, 13.65, 5, 2, 0.3);
   createWall(30, 1.85, 16.35, 5, 2, 0.3);
+
+  // Se inicializa el arreglo con los objetos para la cinta
+  const conveyorObjects = [];
+  for(let i = 0; i < 7; i++) {
+    conveyorObjects.push(createTransportable(scene));
+  }
+
+  return {
+    conveyorObjects
+  };
 }
 
 function main() {
@@ -253,17 +279,138 @@ function main() {
   scene.add(gridXZ);
 
   // Funcion para crear todos los objetos en la escena
-  objectSetup(scene);
+  const allObjects = objectSetup(scene);
 
+  // Se obtienen los objetos que iran sobre la cinta transportadora
+  var conveyorObjects = allObjects.conveyorObjects;
+  // Se setea el primer objeto a que se mueva
+  conveyorObjects[0].startMoving = true;
 
+  /* 
+   - Arreglo para los puntos en los cuales dara vuelta el objeto
+   - Cada elemento del arreglo es la componente del punto que se va
+     a checar con el objeto
+   - El indice del arreglo indica el segmento al que apunta 
+  */
+  const POINTS = [-15, -10, 10, 10, -15, 30, 15, 3];
   // Funcion que maneja las animaciones de los objetos
   const animate = function() {
     controls.update();
-    requestAnimationFrame( animate );
+    requestAnimationFrame(animate);
 
     // light.position.x = (light.position.x + 0.5) % 100;
     // cube.rotation.x += 0.01;
     // cube.rotation.y += 0.01;
+
+    conveyorObjects.forEach((obj, i) => {
+      // Revisa si el objeto puede moverse
+      if (!obj.startMoving) {
+        return;
+      }
+
+      switch(obj.pathSegment) {
+        case 0:
+          obj.mesh.position.z -= 0.5;
+          if (obj.mesh.position.z <= POINTS[0]) {
+            if (i < conveyorObjects.length - 1) {
+              conveyorObjects[i+1].startMoving = true;
+            }
+            
+            obj.mesh.position.z = POINTS[0];
+            obj.pathSegment++;
+          }
+          break;
+
+        case 1:
+          obj.mesh.position.x += 0.5;
+          if (obj.mesh.position.x >= POINTS[1]) {
+            obj.mesh.position.x = POINTS[1];
+            obj.pathSegment++;
+          }
+          break;
+
+        case 2:
+          obj.mesh.position.z += 0.5;
+          if (obj.mesh.position.z >= POINTS[2]) {
+            obj.mesh.position.z = POINTS[2];
+            obj.pathSegment++;
+          }
+          break;
+        case 3:
+          obj.mesh.position.x += 0.5;
+          if (obj.mesh.position.x >= POINTS[3]) {
+            obj.mesh.position.x = POINTS[3];
+            obj.pathSegment++;
+          }
+          break;
+        case 4:
+          obj.mesh.position.z -= 0.5;
+          if (obj.mesh.position.z <= POINTS[4]) {
+            obj.mesh.position.z = POINTS[4];
+            obj.pathSegment++;
+          }
+          break;
+
+        case 5:
+          obj.mesh.position.x += 0.5;
+          if (obj.mesh.position.x >= POINTS[5]) {
+            obj.mesh.position.x = POINTS[5];
+            obj.pathSegment++;
+          }
+          break;
+
+        case 6:
+          obj.mesh.position.z += 0.5;
+          if (obj.mesh.position.z >= POINTS[6]) {
+            obj.mesh.position.z = POINTS[6];
+            obj.pathSegment++;
+          }
+          break;
+
+        case 7:
+          obj.mesh.position.y -= 0.5;
+          if (obj.mesh.position.y <= POINTS[7]) {
+            obj.mesh.position.y = POINTS[7];
+            obj.pathSegment++;
+          }
+          break;
+
+        case 8:
+          let index = i+1;
+          if (index > conveyorObjects.length - 1) {
+            index = 0;
+          }
+          
+          if (conveyorObjects[index].mesh.position.y <= POINTS[7]) {
+            obj.pathSegment=0;
+            obj.mesh.position.set(-30,5,15);
+          }
+          break;
+
+        default:
+          console.error("SEGMENT NOT VALID: ", obj.pathSegment);
+      }
+
+    });
+
+    /*
+    objetos[] = [(Mesh, # de segmento, startMoving)]
+    for (obj in objetos) {
+      if (!obj.startMoving) {
+        continue;
+      }
+       
+      if (obj.num === 0) {
+        obj.mesh.position.x += v;
+        if (obj.mesh.position.x === x1 && obj.mesh.position.z === z1) {
+          objetos[i + 1].startMoving = true;
+          obj.num ++;
+        }
+      } else if (obj.num)
+      
+    }
+
+    */
 
     renderer.render( scene, camera );
   };
