@@ -55,9 +55,21 @@ function createXConveyorBelt(x, y, z) {
   scene.add(mainStructure);
 }
 
-function createWall(x, y, z, width, height, depth) {
+function createWall(x, y, z, width, height, depth,
+    texture, repeatHorizontally, repeatVertically) {
+  const loader = new THREE.TextureLoader();
+  const loadedTexture = loader.load(`./textures/${texture}`);
+  loadedTexture.wrapS = THREE.MirroredRepeatWrapping;
+  loadedTexture.wrapT = THREE.MirroredRepeatWrapping;
+  loadedTexture.repeat.set(repeatHorizontally, repeatVertically);
+
   const geometry = new THREE.BoxGeometry(width, height, depth);
-  const material = new THREE.MeshLambertMaterial({color: 0x61676a});
+  // const material = new THREE.MeshLambertMaterial(
+  // {color: 0x61676a}
+  // );
+  const material = new THREE.MeshLambertMaterial({
+    map: loadedTexture,
+  });
 
   const wall = new THREE.Mesh(geometry, material);
   wall.position.set(x, y, z);
@@ -175,9 +187,9 @@ function createTransportable(scene) {
   scene.add(sphere);
 
   return {
-    mesh: sphere, 
+    mesh: sphere,
     startMoving: false,
-    pathSegment: 0
+    pathSegment: 0,
   };
 }
 
@@ -201,11 +213,11 @@ function objectSetup() {
   scene.add(spawnVoid);
 
   // Se crean el piso, el techo y las 4 paredes
-  createWall(0, 0, 0, 70, 1, 40);
-  createWall(0, 20, 0, 71, 1, 40);
-  createWall(-35, 10, 0, 1, 20, 40);
-  createWall(35, 10, 0, 1, 20, 40);
-  createWall(0, 10, -20, 71, 20, 1);
+  createWall(0, 0, 0, 70, 1, 40, 'floor.jpg', 5, 3); // Piso
+  createWall(0, 20, 0, 71, 1, 40, 'wall.jpg', 2, 1); // Techo
+  createWall(-35, 10, 0, 1, 20, 40, 'wall.jpg', 3, 1); // Pared izquierda
+  createWall(35, 10, 0, 1, 20, 40, 'wall.jpg', 3, 1); // Pared derecha
+  createWall(0, 10, -20, 71, 20, 1, 'wall.jpg', 3, 1); // Pared fondo
 
   // Objetos para la conveyor belt
   createZConveyorBelt(-30, 0, -2.5);
@@ -228,22 +240,22 @@ function objectSetup() {
   const cylinders = createMachine(0, 0, 10);
 
   // Creacion de la canasta al final de la cinta
-  createWall(30, 1, 15, 5, 0.3, 3);
-  createWall(27.5, 1.85, 15, 0.3, 2, 3);
-  createWall(32.5, 1.85, 15, 0.3, 2, 3);
+  createWall(30, 1, 15, 5, 0.3, 3, 'wall.jpg', 2, 1); // Piso de la canasta
+  createWall(27.5, 1.85, 15, 0.3, 2, 3, 'wall.jpg', 2, 1); // Pared izquierda
+  createWall(32.5, 1.85, 15, 0.3, 2, 3, 'wall.jpg', 2, 1); // Pared derecha
 
-  createWall(30, 1.85, 13.65, 5, 2, 0.3);
-  createWall(30, 1.85, 16.35, 5, 2, 0.3);
+  createWall(30, 1.85, 13.65, 5, 2, 0.3, 'wall.jpg', 2, 1); // Pared frente
+  createWall(30, 1.85, 16.35, 5, 2, 0.3, 'wall.jpg', 2, 1); // Pared fondo
 
   // Se inicializa el arreglo con los objetos para la cinta
   const conveyorObjects = [];
-  for(let i = 0; i < 7; i++) {
+  for (let i = 0; i < 7; i++) {
     conveyorObjects.push(createTransportable(scene));
   }
 
   return {
     conveyorObjects,
-    cylinders
+    cylinders,
   };
 }
 
@@ -284,31 +296,43 @@ function main() {
   const allObjects = objectSetup(scene);
 
   // Se obtienen los objetos que iran sobre la cinta transportadora
-  var conveyorObjects = allObjects.conveyorObjects;
+  const conveyorObjects = allObjects.conveyorObjects;
   // Se setea el primer objeto a que se mueva
   conveyorObjects[0].startMoving = true;
 
-  /* 
+  /*
    - Arreglo para los puntos en los cuales dara vuelta el objeto
    - Cada elemento del arreglo es la componente del punto que se va
      a checar con el objeto
-   - El indice del arreglo indica el segmento al que apunta 
+   - El indice del arreglo indica el segmento al que apunta
   */
   const POINTS = [-15, -10, 10, 10, -15, 30, 15, 3];
 
 
-  var cylinders = allObjects.cylinders;
-  var cylinderSpeeds = [Math.random() * (0.1 - 0.02) + 0.02, Math.random() * (0.1 - 0.02) + 0.02, Math.random() * (0.1 - 0.02) + 0.02];
+  const cylinders = allObjects.cylinders;
+  const cylinderSpeeds = [Math.random() * (0.1 - 0.02) + 0.02,
+    Math.random()* (0.1 - 0.02) + 0.02, Math.random() * (0.1 - 0.02) + 0.02];
   const CYLINDER_BOUNDS = {MAX: 10, MIN: 7.5};
+
+  // Test
+  const videoInformation = addVideoTexture();
 
   // Funcion que maneja las animaciones de los objetos
   const animate = function() {
     controls.update();
     requestAnimationFrame(animate);
 
-    updateConveyorObjects(conveyorObjects, POINTS);    
+    updateConveyorObjects(conveyorObjects, POINTS);
 
     updateMachineCylinders(cylinders, cylinderSpeeds, CYLINDER_BOUNDS);
+
+    // check for vid data
+    if (videoInformation.videoCanvas.readyState === video.HAVE_ENOUGH_DATA) {
+      // draw video to canvas starting from upper left corner
+      videoInformation.videoContext.drawImage(video, 0, 0);
+      // tell texture object it needs to be updated
+      videoInformation.videoTexture.needsUpdate = true;
+    }
 
     renderer.render( scene, camera );
   };
@@ -321,32 +345,31 @@ function main() {
 
   const lightDown = new THREE.PointLight(0xFFFFFF, 1.8, 500);
   lightDown.position.set(0, -30, 0);
-  scene.add(lightDown);
+  // scene.add(lightDown);
 
   const light = new THREE.AmbientLight( 0xFFFFFF, 0.5 ); // soft white light
   scene.add( light );
 
-  animate();
+  animate(videoInformation);
 }
 
 main();
 
 function updateConveyorObjects(conveyorObjects, POINTS) {
-  
   conveyorObjects.forEach((obj, i) => {
     // Revisa si el objeto puede moverse
     if (!obj.startMoving) {
       return;
     }
 
-    switch(obj.pathSegment) {
+    switch (obj.pathSegment) {
       case 0:
         obj.mesh.position.z -= 0.05;
         if (obj.mesh.position.z <= POINTS[0]) {
           if (i < conveyorObjects.length - 1) {
             conveyorObjects[i+1].startMoving = true;
           }
-          
+
           obj.mesh.position.z = POINTS[0];
           obj.pathSegment++;
         }
@@ -411,17 +434,16 @@ function updateConveyorObjects(conveyorObjects, POINTS) {
         if (index > conveyorObjects.length - 1) {
           index = 0;
         }
-        
+
         if (conveyorObjects[index].mesh.position.y <= POINTS[7]) {
           obj.pathSegment = 0;
-          obj.mesh.position.set(-30,5,15);
+          obj.mesh.position.set(-30, 5, 15);
         }
         break;
 
       default:
-        console.error("SEGMENT NOT VALID: ", obj.pathSegment);
+        console.error('SEGMENT NOT VALID: ', obj.pathSegment);
     }
-
   });
 }
 
@@ -430,7 +452,47 @@ function updateMachineCylinders(cylinders, cylinderSpeeds, CYLINDER_BOUNDS) {
     cylinder.position.y += cylinderSpeeds[i];
     if (cylinder.position.y > CYLINDER_BOUNDS.MAX ||
       cylinder.position.y < CYLINDER_BOUNDS.MIN) {
-        cylinderSpeeds[i] *= -1;
-      }
-  })
+      cylinderSpeeds[i] *= -1;
+    }
+  });
 }
+
+function addVideoTexture(x, y, z, width, height, depth, angle) {
+  // create the video element
+  const video = document.getElementById('video');
+  video.playbackRate = 0.4;
+  const videoImage = document.createElement( 'canvas' );
+  videoImage.width = 700;
+  videoImage.height = 700;
+
+  const videoImageContext = videoImage.getContext('2d');
+  // background color if no video present
+  videoImageContext.fillStyle = '#000000';
+  videoImageContext.fillRect( 0, 0, videoImage.width, videoImage.height );
+
+  const videoTexture = new THREE.Texture( videoImage );
+  videoTexture.minFilter = THREE.LinearFilter;
+  videoTexture.magFilter = THREE.LinearFilter;
+
+  videoTexture.wrapS = THREE.RepeatWrapping;
+  videoTexture.wrapT = THREE.RepeatWrapping;
+  videoTexture.repeat.set(1, 3);
+
+  const videoMaterial = new THREE.MeshBasicMaterial(
+      {map: videoTexture, overdraw: true, side: THREE.DoubleSide});
+  // the geometry on which the movie will be displayed;
+  // movie image will be scaled to fit these dimensions.
+  const videoGeometry = new THREE.PlaneGeometry(4, 10, 10);
+  const videoScreen = new THREE.Mesh(videoGeometry, videoMaterial);
+  videoScreen.position.set(0, 10, 0);
+
+
+  scene.add(videoScreen);
+
+  return {
+    videoCanvas: video,
+    videoContext: videoImageContext,
+    videoTexture: videoTexture,
+  };
+}
+
