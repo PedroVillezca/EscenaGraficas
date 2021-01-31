@@ -170,17 +170,17 @@ function createMachine(x, y, z) {
   machineTop.scale.set(1, 1, 2.5);
   scene.add(machineTop);
 
-  const centerCylinderGeom = new THREE.CylinderGeometry(0.5, 0.5, 4, 32);
-  const centerCylinder = new THREE.Mesh(centerCylinderGeom,
-      machineMaterialCylinder);
-  centerCylinder.position.set(x, y + 10, z);
-  scene.add(centerCylinder);
-
   const leftCylinderGeom = new THREE.CylinderGeometry(0.5, 0.5, 4, 32);
   const leftCylinder = new THREE.Mesh(leftCylinderGeom,
       machineMaterialCylinder);
   leftCylinder.position.set(x - 3, y + 10, z);
   scene.add(leftCylinder);
+
+  const centerCylinderGeom = new THREE.CylinderGeometry(0.5, 0.5, 4, 32);
+  const centerCylinder = new THREE.Mesh(centerCylinderGeom,
+      machineMaterialCylinder);
+  centerCylinder.position.set(x, y + 10, z);
+  scene.add(centerCylinder);
 
   const rightCylinderGeom = new THREE.CylinderGeometry(0.5, 0.5, 4, 32);
   const rightCylinder = new THREE.Mesh(rightCylinderGeom,
@@ -198,25 +198,31 @@ function createMachine(x, y, z) {
   rightVoid.position.set(x + 4.4, y + 5.5, z);
   scene.add(rightVoid);
 
-  const centerButtonGeom = new THREE.CylinderGeometry(0.5, 0.5, 0.25, 32);
+  const leftButtonGeom = new THREE.CylinderGeometry(0.5, 0.5, 0.75, 32);
+  const leftButton = new THREE.Mesh(leftButtonGeom, machineMaterialButton);
+  leftButton.position.set(x - 3, y + 6, z + 5.2);
+  leftButton.rotation.x += (Math.PI / 2);
+  leftButton.userData = {id: 0};
+  scene.add(leftButton);
+
+  const centerButtonGeom = new THREE.CylinderGeometry(0.5, 0.5, 0.75, 32);
   const centerButton = new THREE.Mesh(centerButtonGeom, machineMaterialButton);
   centerButton.position.set(x, y + 6, z + 5.5);
   centerButton.rotation.x += (Math.PI / 2);
+  centerButton.userData = {id: 1};
   scene.add(centerButton);
 
-  const leftButtonGeom = new THREE.CylinderGeometry(0.5, 0.5, 0.25, 32);
-  const leftButton = new THREE.Mesh(leftButtonGeom, machineMaterialButton);
-  leftButton.position.set(x - 3, y + 6, z + 5.5);
-  leftButton.rotation.x += (Math.PI / 2);
-  scene.add(leftButton);
-
-  const rightButtonGeom = new THREE.CylinderGeometry(0.5, 0.5, 0.25, 32);
+  const rightButtonGeom = new THREE.CylinderGeometry(0.5, 0.5, 0.75, 32);
   const rightButton = new THREE.Mesh(rightButtonGeom, machineMaterialButton);
   rightButton.position.set(x + 3, y + 6, z + 5.5);
   rightButton.rotation.x += (Math.PI / 2);
+  rightButton.userData = {id: 2};
   scene.add(rightButton);
 
-  return [leftCylinder, centerCylinder, rightCylinder];
+  return {
+    cylinders: [leftCylinder, centerCylinder, rightCylinder],
+    buttons: [leftButton, centerButton, rightButton],
+  };
 }
 
 // Funcion para crear planos con texturas sobre la cinta transportadora
@@ -290,7 +296,9 @@ function objectSetup(videoMaterial) {
   createLamp(20, 19.25, 0);
 
   // Creacion de la maquina interactuable
-  const cylinders = createMachine(0, 0, 10);
+  const machineObjects = createMachine(0, 0, 10);
+  const cylinders = machineObjects.cylinders;
+  const buttons = machineObjects.buttons;
 
   // Creacion de la canasta al final de la cinta
   createWall(30, 1, 15, 5, 0.3, 3, 'basket.jpg', 2, 1); // Piso de la canasta
@@ -319,6 +327,7 @@ function objectSetup(videoMaterial) {
   return {
     conveyorObjects,
     cylinders,
+    buttons,
   };
 }
 
@@ -380,6 +389,7 @@ function main() {
     Math.random()* (0.1 - 0.02) + 0.02, Math.random() * (0.1 - 0.02) + 0.02];
   const CYLINDER_BOUNDS = {MAX: 10, MIN: 7.5};
 
+  const buttons = allObjects.buttons;
 
   // Funcion que maneja las animaciones de los objetos
   const animate = function() {
@@ -400,6 +410,36 @@ function main() {
 
     renderer.render( scene, camera );
   };
+
+  const mouse = new THREE.Vector2();
+
+  const pickButton = function(event) {
+    event.preventDefault();
+    const raycaster = new THREE.Raycaster();
+    const rect = renderer.domElement.getBoundingClientRect();
+    mouse.x = ( ( event.clientX - rect.left ) /
+              ( rect.right - rect.left ) ) * 2 - 1;
+    mouse.y = - ( ( event.clientY - rect.top ) /
+                ( rect.bottom - rect.top) ) * 2 + 1;
+    // find intersections
+    raycaster.setFromCamera( mouse, camera );
+
+    const intersects = raycaster.intersectObjects( scene.children );
+    if ( intersects.length > 0 ) {
+      console.log('clicc');
+      if (intersects[0].object.userData.id in [0, 1, 2]) {
+        console.log(intersects[0].object.userData);
+        for (let i = 0; i < buttons.length; i++) {
+          if (i === intersects[0].object.userData.id) {
+            buttons[i].position.z = 15.2;
+          } else {
+            buttons[i].position.z = 15.5;
+          }
+        }
+      }
+    }
+  };
+  document.addEventListener('dblclick', pickButton);
 
   // Fuente de luz para testing
 
@@ -552,3 +592,33 @@ function addVideoTexture() {
     videoMaterial: videoMaterial,
   };
 }
+
+/*
+
+var camera, scene, raycaster, renderer;
+  var mouse = new THREE.Vector2(), INTERSECTED;
+  var radius = 100;
+
+function onDocumentMouseDown( event ) {
+    event.preventDefault();
+    mouse.x = ( event.clientX / window.innerWidth ) * 2 - 1;
+    mouse.y = - ( event.clientY / window.innerHeight ) * 2 + 1;
+    // find intersections
+    raycaster.setFromCamera( mouse, camera );
+    var intersects = raycaster.intersectObjects( scene.children );
+    if ( intersects.length > 0 ) {
+      if ( INTERSECTED != intersects[ 0 ].object ) {
+        if ( INTERSECTED )
+          INTERSECTED.material.emissive.setHex( INTERSECTED.currentHex );
+        INTERSECTED = intersects[ 0 ].object;
+        INTERSECTED.currentHex = INTERSECTED.material.emissive.getHex();
+        INTERSECTED.material.emissive.setHex( 0xff0000 );
+         console.log(intersects.length);
+      }
+    } else {
+      if ( INTERSECTED )
+        INTERSECTED.material.emissive.setHex( INTERSECTED.currentHex );
+      INTERSECTED = null;
+    }
+
+*/
