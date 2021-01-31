@@ -20,9 +20,22 @@ const scene = new THREE.Scene();
  * @param {Number} angle
  */
 function createZConveyorBelt(x, y, z) {
+  const loader = new THREE.TextureLoader();
+  const loadedTextureTable = loader.load(`./textures/table.jpg`);
+  const loadedTextureLegs = loader.load(`./textures/wood.png`);
+  loadedTextureTable.wrapS = THREE.MirroredRepeatWrapping;
+  loadedTextureTable.wrapT = THREE.MirroredRepeatWrapping;
+  loadedTextureTable.repeat.set(1, 3);
+
+  const mainStructureMaterial = new THREE.MeshLambertMaterial({
+    map: loadedTextureTable,
+  });
+
+  const legMaterial = new THREE.MeshLambertMaterial({
+    map: loadedTextureLegs,
+  });
+
   const mainStructureGeom = new THREE.BoxGeometry(5, 0.5, 30);
-  const mainStructureMaterial = new THREE
-      .MeshLambertMaterial({color: 0xbfc7cc});
 
   const mainStructure = new THREE
       .Mesh(mainStructureGeom, mainStructureMaterial);
@@ -30,10 +43,10 @@ function createZConveyorBelt(x, y, z) {
   scene.add(mainStructure);
 
   const legGeom = new THREE.CylinderGeometry(0.5, 0.5, 3);
-  const legOne = new THREE.Mesh(legGeom, mainStructureMaterial);
-  const legTwo = new THREE.Mesh(legGeom, mainStructureMaterial);
-  const legThree = new THREE.Mesh(legGeom, mainStructureMaterial);
-  const legFour = new THREE.Mesh(legGeom, mainStructureMaterial);
+  const legOne = new THREE.Mesh(legGeom, legMaterial);
+  const legTwo = new THREE.Mesh(legGeom, legMaterial);
+  const legThree = new THREE.Mesh(legGeom, legMaterial);
+  const legFour = new THREE.Mesh(legGeom, legMaterial);
   legOne.position.set(-2+x, 1.5+y, -12+z);
   legTwo.position.set(2+x, 1.5+y, -12+z);
   legThree.position.set(2+x, 1.5+y, 12+z);
@@ -45,9 +58,16 @@ function createZConveyorBelt(x, y, z) {
 }
 
 function createXConveyorBelt(x, y, z) {
+  const loader = new THREE.TextureLoader();
+  const loadedTexture = loader.load(`./textures/table.jpg`);
+  loadedTexture.wrapS = THREE.MirroredRepeatWrapping;
+  loadedTexture.wrapT = THREE.MirroredRepeatWrapping;
+  loadedTexture.repeat.set(2, 1);
+  const mainStructureMaterial = new THREE.MeshLambertMaterial({
+    map: loadedTexture,
+  });
+
   const mainStructureGeom = new THREE.BoxGeometry(15, 0.5, 5);
-  const mainStructureMaterial = new THREE
-      .MeshLambertMaterial({color: 0xbfc7cc});
 
   const mainStructure = new THREE
       .Mesh(mainStructureGeom, mainStructureMaterial);
@@ -79,36 +99,56 @@ function createWall(x, y, z, width, height, depth,
 
 function createLamp(x, y, z) {
   // Material para la lampara
-  const material = new THREE.MeshLambertMaterial({color: 0x666000});
+  const materialBulb = new THREE.MeshLambertMaterial({color: 0xfffec8});
+
+  const loader = new THREE.TextureLoader();
+  const loadedTextureBase = loader.load('./textures/blackMetal.png');
+  const materialBase = new THREE.MeshLambertMaterial({map: loadedTextureBase});
+
+  const loadedTextureCone = loader.load('./textures/lampCone.png');
+  const materialCone = new THREE.MeshLambertMaterial({map: loadedTextureCone});
 
   // Base de la lampara
   const lampBaseGeom = new THREE.CylinderGeometry(2, 0.15, 0.5, 32);
-  const lampBase = new THREE.Mesh(lampBaseGeom, material);
+  const lampBase = new THREE.Mesh(lampBaseGeom, materialBase);
   lampBase.position.set(x, y, z);
   scene.add(lampBase);
 
   // Cable donde cuelga la lampara
   const lampWireGeom = new THREE.CylinderGeometry(0.15, 0.15, 2, 32);
-  const lampWire = new THREE.Mesh(lampWireGeom, material);
+  const lampWire = new THREE.Mesh(lampWireGeom, materialCone);
   lampWire.position.set(x, y - 1, z);
   scene.add(lampWire);
 
   // Base para el Foco
   const lampConeGeom = new THREE.CylinderGeometry(0.15, 0.75, 1, 32);
-  const lampCone = new THREE.Mesh(lampConeGeom, material);
+  const lampCone = new THREE.Mesh(lampConeGeom, materialCone);
   lampCone.position.set(x, y - 2.1, z);
   scene.add(lampCone);
 
   // Foco
   const lampLightGeom = new THREE.SphereGeometry(0.5, 32, 32);
-  const lampLight = new THREE.Mesh(lampLightGeom, material);
+  const lampLight = new THREE.Mesh(lampLightGeom, materialBulb);
   lampLight.position.set(x, y - 2.35, z);
   scene.add(lampLight);
 }
 
 function createMachine(x, y, z) {
+  const loader = new THREE.TextureLoader();
+  const loadedTextureBase = loader.load('./textures/machineRust.png');
+
   const machineMaterial = new THREE
-      .MeshLambertMaterial({color: 0xbfc7cc});
+      .MeshLambertMaterial({map: loadedTextureBase});
+
+  const loadedTextureCylinder = loader.load('./textures/cylinderMetal.png');
+
+  const machineMaterialCylinder = new THREE
+      .MeshLambertMaterial({map: loadedTextureCylinder});
+
+  const loadedTextureButton = loader.load('./textures/redButton.png');
+
+  const machineMaterialButton = new THREE
+      .MeshLambertMaterial({map: loadedTextureButton});
 
   const voidMaterial = new THREE.MeshBasicMaterial({color: 0x000000});
 
@@ -133,17 +173,20 @@ function createMachine(x, y, z) {
   scene.add(machineTop);
 
   const centerCylinderGeom = new THREE.CylinderGeometry(0.5, 0.5, 4, 32);
-  const centerCylinder = new THREE.Mesh(centerCylinderGeom, machineMaterial);
+  const centerCylinder = new THREE.Mesh(centerCylinderGeom,
+      machineMaterialCylinder);
   centerCylinder.position.set(x, y + 10, z);
   scene.add(centerCylinder);
 
   const leftCylinderGeom = new THREE.CylinderGeometry(0.5, 0.5, 4, 32);
-  const leftCylinder = new THREE.Mesh(leftCylinderGeom, machineMaterial);
+  const leftCylinder = new THREE.Mesh(leftCylinderGeom,
+      machineMaterialCylinder);
   leftCylinder.position.set(x - 3, y + 10, z);
   scene.add(leftCylinder);
 
   const rightCylinderGeom = new THREE.CylinderGeometry(0.5, 0.5, 4, 32);
-  const rightCylinder = new THREE.Mesh(rightCylinderGeom, machineMaterial);
+  const rightCylinder = new THREE.Mesh(rightCylinderGeom,
+      machineMaterialCylinder);
   rightCylinder.position.set(x + 3, y + 10, z);
   scene.add(rightCylinder);
 
@@ -158,24 +201,33 @@ function createMachine(x, y, z) {
   scene.add(rightVoid);
 
   const centerButtonGeom = new THREE.CylinderGeometry(0.5, 0.5, 0.25, 32);
-  const centerButton = new THREE.Mesh(centerButtonGeom, buttonMaterial);
+  const centerButton = new THREE.Mesh(centerButtonGeom, machineMaterialButton);
   centerButton.position.set(x, y + 6, z + 5.5);
   centerButton.rotation.x += (Math.PI / 2);
   scene.add(centerButton);
 
   const leftButtonGeom = new THREE.CylinderGeometry(0.5, 0.5, 0.25, 32);
-  const leftButton = new THREE.Mesh(leftButtonGeom, buttonMaterial);
+  const leftButton = new THREE.Mesh(leftButtonGeom, machineMaterialButton);
   leftButton.position.set(x - 3, y + 6, z + 5.5);
   leftButton.rotation.x += (Math.PI / 2);
   scene.add(leftButton);
 
   const rightButtonGeom = new THREE.CylinderGeometry(0.5, 0.5, 0.25, 32);
-  const rightButton = new THREE.Mesh(rightButtonGeom, buttonMaterial);
+  const rightButton = new THREE.Mesh(rightButtonGeom, machineMaterialButton);
   rightButton.position.set(x + 3, y + 6, z + 5.5);
   rightButton.rotation.x += (Math.PI / 2);
   scene.add(rightButton);
 
   return [leftCylinder, centerCylinder, rightCylinder];
+}
+
+// Funcion para crear planos con texturas sobre la cinta transportadora
+function createTextureBelt(x, z, width, height, rotationZ, videoMaterial) {
+  const planeGeometry = new THREE.PlaneGeometry(width, height);
+  const planeMesh = new THREE.Mesh(planeGeometry, videoMaterial);
+  planeMesh.position.set(x, 3.3, z);
+  planeMesh.rotation.set((Math.PI / 2), 0, rotationZ);
+  scene.add(planeMesh);
 }
 
 // Funcion para crear los objetos en la cinta transportadora
@@ -193,10 +245,13 @@ function createTransportable(scene) {
   };
 }
 
-function objectSetup() {
+function objectSetup(videoMaterial) {
+  const loader = new THREE.TextureLoader();
+  const loadedTextureBase = loader.load('./textures/machineRust.png');
+
   const spawnObjectGeometry = new THREE.BoxGeometry(5, 8, 5);
   const spawnObjectMaterial = new THREE.MeshLambertMaterial(
-      {color: 0xbfc7cc},
+      {map: loadedTextureBase},
   );
 
   const spawnObject = new THREE.Mesh(
@@ -240,12 +295,22 @@ function objectSetup() {
   const cylinders = createMachine(0, 0, 10);
 
   // Creacion de la canasta al final de la cinta
-  createWall(30, 1, 15, 5, 0.3, 3, 'wall.jpg', 2, 1); // Piso de la canasta
-  createWall(27.5, 1.85, 15, 0.3, 2, 3, 'wall.jpg', 2, 1); // Pared izquierda
-  createWall(32.5, 1.85, 15, 0.3, 2, 3, 'wall.jpg', 2, 1); // Pared derecha
+  createWall(30, 1, 15, 5, 0.3, 3, 'basket.jpg', 2, 1); // Piso de la canasta
+  createWall(27.5, 1.85, 15, 0.3, 2, 3, 'basket.jpg', 2, 1); // Pared izquierda
+  createWall(32.5, 1.85, 15, 0.3, 2, 3, 'basket.jpg', 2, 1); // Pared derecha
 
-  createWall(30, 1.85, 13.65, 5, 2, 0.3, 'wall.jpg', 2, 1); // Pared frente
-  createWall(30, 1.85, 16.35, 5, 2, 0.3, 'wall.jpg', 2, 1); // Pared fondo
+  createWall(30, 1.85, 13.65, 5, 2, 0.3, 'basket.jpg', 2, 1); // Pared frente
+  createWall(30, 1.85, 16.35, 5, 2, 0.3, 'basket.jpg', 2, 1); // Pared fondo
+
+  // Creacion de los planos texturizados para la cinta transportadora
+  createTextureBelt(-30, 0, 4, 26, 0, videoMaterial);
+  createTextureBelt(-22, -15, 4, 20, (Math.PI / 2), videoMaterial);
+  createTextureBelt(-10, -4.5, 4, 25, (Math.PI), videoMaterial);
+  createTextureBelt(-2, 10, 4, 20, (Math.PI / 2), videoMaterial);
+  createTextureBelt(10, -0.5, 4, 25, 0, videoMaterial);
+  createTextureBelt(18, -15, 4, 20, (Math.PI / 2), videoMaterial);
+  createTextureBelt(30, -2.25, 4, 29.5, (Math.PI), videoMaterial);
+  // params x, z, width, height, rotationY, videoMaterial
 
   // Se inicializa el arreglo con los objetos para la cinta
   const conveyorObjects = [];
@@ -266,9 +331,9 @@ function main() {
 */
   const camera = new THREE
       .PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
-  camera.position.y = 25;
-  camera.position.z = 30;
-  camera.lookAt(new THREE.Vector3(0, 0, 0));
+  camera.position.y = 15;
+  camera.position.z = 35;
+  camera.lookAt(new THREE.Vector3(0, 10, 0));
 
   // Se crea el renderiazdor, que a su vez genera el canvas para la escena
   const renderer = new THREE.WebGLRenderer();
@@ -292,8 +357,11 @@ function main() {
       new THREE.Color(0xff0000), new THREE.Color(0xffffff));
   scene.add(gridXZ);
 
+  // Se genera una textura animada para las cintas transportadoras
+  const videoInformation = addVideoTexture();
+
   // Funcion para crear todos los objetos en la escena
-  const allObjects = objectSetup(scene);
+  const allObjects = objectSetup(videoInformation.videoMaterial);
 
   // Se obtienen los objetos que iran sobre la cinta transportadora
   const conveyorObjects = allObjects.conveyorObjects;
@@ -314,8 +382,6 @@ function main() {
     Math.random()* (0.1 - 0.02) + 0.02, Math.random() * (0.1 - 0.02) + 0.02];
   const CYLINDER_BOUNDS = {MAX: 10, MIN: 7.5};
 
-  // Test
-  const videoInformation = addVideoTexture();
 
   // Funcion que maneja las animaciones de los objetos
   const animate = function() {
@@ -457,7 +523,7 @@ function updateMachineCylinders(cylinders, cylinderSpeeds, CYLINDER_BOUNDS) {
   });
 }
 
-function addVideoTexture(x, y, z, width, height, depth, angle) {
+function addVideoTexture() {
   // create the video element
   const video = document.getElementById('video');
   video.playbackRate = 0.4;
@@ -480,19 +546,11 @@ function addVideoTexture(x, y, z, width, height, depth, angle) {
 
   const videoMaterial = new THREE.MeshBasicMaterial(
       {map: videoTexture, overdraw: true, side: THREE.DoubleSide});
-  // the geometry on which the movie will be displayed;
-  // movie image will be scaled to fit these dimensions.
-  const videoGeometry = new THREE.PlaneGeometry(4, 10, 10);
-  const videoScreen = new THREE.Mesh(videoGeometry, videoMaterial);
-  videoScreen.position.set(0, 10, 0);
-
-
-  scene.add(videoScreen);
 
   return {
     videoCanvas: video,
     videoContext: videoImageContext,
     videoTexture: videoTexture,
+    videoMaterial: videoMaterial,
   };
 }
-
