@@ -152,8 +152,6 @@ function createMachine(x, y, z) {
 
   const voidMaterial = new THREE.MeshBasicMaterial({color: 0x000000});
 
-  const buttonMaterial = new THREE.MeshLambertMaterial({color: 0xFF0000});
-
   const machineFrontGeom = new THREE.BoxGeometry(10, 8, 2);
   const machineFront = new THREE.Mesh(machineFrontGeom, machineMaterial);
   machineFront.position.set(x, y + 4, z + 4.5);
