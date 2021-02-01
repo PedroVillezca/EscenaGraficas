@@ -9,9 +9,29 @@ import * as THREE from './node_modules/three/src/Three.js';
 import {OrbitControls} from
   './node_modules/three/examples/jsm/controls/OrbitControls.js';
 
-const VELOCITY = 0.5;
+const VELOCITY = 0.3;
 const scene = new THREE.Scene();
 const MACHINE_STATUS = [0, 0, 0];
+
+
+function addText(x, y, z, text) {
+  const fontLoader = new THREE.FontLoader();
+
+  fontLoader.load('fonts/roboto_medium_regular.json', function(font) {
+    const textGeometry = new THREE.TextGeometry(text, {
+      font: font,
+      size: 1,
+      height: .2,
+      curveSegments: 12,
+    });
+
+    const textMaterial = new THREE.MeshPhongMaterial({color: 0xffffff});
+    const textMesh = new THREE.Mesh(textGeometry, textMaterial);
+    textMesh.position.set(x, y, z);
+    scene.add(textMesh);
+  });
+}
+
 /**
  * Creates a conveyor belt on x,y,z coordinates and
  * rotates it in y in terms of angle given
@@ -153,6 +173,22 @@ function createMachine(x, y, z, machineId) {
 
   const voidMaterial = new THREE.MeshBasicMaterial({color: 0x000000});
 
+  let machineText;
+
+  switch (machineId) {
+    case 0:
+      machineText = 'Metal';
+      break;
+    case 1:
+      machineText = 'Color';
+      break;
+    case 2:
+      machineText = 'Shape';
+      break;
+    default:
+      console.error('Invalid machine ID.');
+  }
+
   const machineFrontGeom = new THREE.BoxGeometry(10, 8, 2);
   const machineFront = new THREE.Mesh(machineFrontGeom, machineMaterial);
   machineFront.position.set(x, y + 4, z + 4.5);
@@ -219,6 +255,9 @@ function createMachine(x, y, z, machineId) {
   rightButton.rotation.x += (Math.PI / 2);
   rightButton.userData = {machineId: machineId, id: 2, defaultZ: z + 5.5};
   scene.add(rightButton);
+
+  addText(x - 1.85, y + 3, z + 5.6, machineText);
+
 
   return {
     cylinders: [leftCylinder, centerCylinder, rightCylinder],
@@ -317,9 +356,12 @@ function objectSetup(videoMaterial) {
   ];
 
   // Creacion de la canasta al final de la cinta
-  createWall(30, 1, 15.5, 5, 0.3, 5, 'basket.jpg', 2, 1); // Piso de la canasta
-  createWall(27.5, 1.85, 15.5, 0.3, 2, 5, 'basket.jpg', 2, 1); // Pared izquierda
-  createWall(32.5, 1.85, 15.5, 0.3, 2, 5, 'basket.jpg', 2, 1); // Pared derecha
+  // Piso de la canasta
+  createWall(30, 1, 15.5, 5, 0.3, 5, 'basket.jpg', 2, 1);
+  // Pared izquierda
+  createWall(27.5, 1.85, 15.5, 0.3, 2, 5, 'basket.jpg', 2, 1);
+  // Pared derecha
+  createWall(32.5, 1.85, 15.5, 0.3, 2, 5, 'basket.jpg', 2, 1);
 
   createWall(30, 1.85, 13.15, 5, 2, 0.3, 'basket.jpg', 2, 1); // Pared frente
   createWall(30, 1.85, 17.85, 5, 2, 0.3, 'basket.jpg', 2, 1); // Pared fondo
@@ -487,19 +529,6 @@ function main() {
   scene.add( light );
 
   animate(videoInformation);
-  /*
-  function getLight(scene) {
-    // SHADOW
-    var light = new THREE.PointLight( 0xffffff, 1, 100 );
-    light.position.set( 0, 10, -1 );
-    light.castShadow = true;            // default false
-    scene.add( light );
-
-    var ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
-    scene.add(ambientLight);
-    return light;
-  }
-*/
 }
 
 main();
@@ -529,7 +558,7 @@ function updateConveyorObjects(conveyorObjects, POINTS) {
         if (obj.mesh.position.x >= POINTS[1]) {
           obj.mesh.position.x = POINTS[1];
           obj.pathSegment++;
-        } else if (obj.mesh.position.x >= -25 && obj.mesh.position.x <= -15) {
+        } else if (obj.mesh.position.x >= -22 && obj.mesh.position.x <= -12) {
           // check status of machine buttons
           // make changes to object accordingly
           operateMachine(obj, 0);
@@ -548,7 +577,7 @@ function updateConveyorObjects(conveyorObjects, POINTS) {
         if (obj.mesh.position.x >= POINTS[3]) {
           obj.mesh.position.x = POINTS[3];
           obj.pathSegment++;
-        } else if (obj.mesh.position.x >= -5 && obj.mesh.position.x <= 5) {
+        } else if (obj.mesh.position.x >= -2 && obj.mesh.position.x <= 2) {
           // check status of machine buttons
           // make changes to object accordingly
           operateMachine(obj, 1);
@@ -692,15 +721,17 @@ function operateMachine(object, machine) {
       object.mesh.geometry.dispose();
       switch (MACHINE_STATUS[2]) {
         case 0:
-          object.mesh.geometry = new THREE.CylinderGeometry(0, 1, 4, 32);
+          object.mesh.geometry = new THREE.CylinderGeometry(0, 1, 3.5, 32);
           break;
 
         case 1:
-          object.mesh.geometry = new THREE.CylinderGeometry(0.8, 0.8, 4, 32);
+          object.mesh.geometry = new THREE.IcosahedronGeometry(2, 0);
+          // object.mesh.position.set(20, 4, -15);
           break;
 
         case 2:
-          object.mesh.geometry = new THREE.BoxGeometry(2.7, 2.7, 2.7);
+          object.mesh.geometry = new THREE.OctahedronGeometry(1.65, 0);
+          // object.mesh.position.y -= 0.5;
           break;
 
         default:
