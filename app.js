@@ -355,9 +355,9 @@ function objectSetup(videoMaterial) {
   createXConveyorBelt(0, 0, 10);
 
   // Se crean las lamparas del techo
-  createLamp(-20, 19.25, 15);
+  createLamp(-20, 19.25, -10);
   createLamp(0, 19.25, 0);
-  createLamp(20, 19.25, -15);
+  createLamp(20, 19.25, 10);
 
   // Creacion de la maquina interactuable
   const machineOneObjects = createMachine(-20, 0, -15, 0);
