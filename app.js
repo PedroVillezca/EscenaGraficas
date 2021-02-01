@@ -9,8 +9,9 @@ import * as THREE from './node_modules/three/src/Three.js';
 import {OrbitControls} from
   './node_modules/three/examples/jsm/controls/OrbitControls.js';
 
+const VELOCITY = 0.5;
 const scene = new THREE.Scene();
-
+const MACHINE_STATUS = [0, 0, 0];
 /**
  * Creates a conveyor belt on x,y,z coordinates and
  * rotates it in y in terms of angle given
@@ -133,7 +134,7 @@ function createLamp(x, y, z) {
   scene.add(lampLight);
 }
 
-function createMachine(x, y, z) {
+function createMachine(x, y, z, machineId) {
   const loader = new THREE.TextureLoader();
   const loadedTextureBase = loader.load('./textures/machineRust.png');
 
@@ -202,21 +203,21 @@ function createMachine(x, y, z) {
   const leftButton = new THREE.Mesh(leftButtonGeom, machineMaterialButton);
   leftButton.position.set(x - 3, y + 6, z + 5.2);
   leftButton.rotation.x += (Math.PI / 2);
-  leftButton.userData = {id: 0};
+  leftButton.userData = {machineId: machineId, id: 0, defaultZ: z + 5.5};
   scene.add(leftButton);
 
   const centerButtonGeom = new THREE.CylinderGeometry(0.5, 0.5, 0.75, 32);
   const centerButton = new THREE.Mesh(centerButtonGeom, machineMaterialButton);
   centerButton.position.set(x, y + 6, z + 5.5);
   centerButton.rotation.x += (Math.PI / 2);
-  centerButton.userData = {id: 1};
+  centerButton.userData = {machineId: machineId, id: 1, defaultZ: z + 5.5};
   scene.add(centerButton);
 
   const rightButtonGeom = new THREE.CylinderGeometry(0.5, 0.5, 0.75, 32);
   const rightButton = new THREE.Mesh(rightButtonGeom, machineMaterialButton);
   rightButton.position.set(x + 3, y + 6, z + 5.5);
   rightButton.rotation.x += (Math.PI / 2);
-  rightButton.userData = {id: 2};
+  rightButton.userData = {machineId: machineId, id: 2, defaultZ: z + 5.5};
   scene.add(rightButton);
 
   return {
@@ -237,7 +238,11 @@ function createTextureBelt(x, z, width, height, rotationZ, videoMaterial) {
 // Funcion para crear los objetos en la cinta transportadora
 function createTransportable(scene) {
   const geom = new THREE.SphereGeometry(1.5, 32, 32);
-  const material = new THREE.MeshLambertMaterial({color: 0x00b8eb});
+  const material = new THREE.MeshStandardMaterial({
+    color: 0xFFFFFF,
+    metalness: 0,
+    roughness: 0,
+  });
   const sphere = new THREE.Mesh(geom, material);
   sphere.position.set(-30, 5, 15); // Misma posicion que el spawnObject
   scene.add(sphere);
@@ -272,11 +277,11 @@ function objectSetup(videoMaterial) {
   scene.add(spawnVoid);
 
   // Se crean el piso, el techo y las 4 paredes
-  createWall(0, 0, 0, 70, 1, 40, 'floor.jpg', 5, 3); // Piso
-  createWall(0, 20, 0, 71, 1, 40, 'wall.jpg', 2, 1); // Techo
-  createWall(-35, 10, 0, 1, 20, 40, 'wall.jpg', 3, 1); // Pared izquierda
-  createWall(35, 10, 0, 1, 20, 40, 'wall.jpg', 3, 1); // Pared derecha
-  createWall(0, 10, -20, 71, 20, 1, 'wall.jpg', 3, 1); // Pared fondo
+  createWall(0, 0, 0, 70, 1, 50, 'floor.jpg', 5, 3); // Piso
+  createWall(0, 20, 0, 71, 1, 50.5, 'wall.jpg', 2, 1); // Techo
+  createWall(-35, 10, 0, 1, 20, 50, 'wall.jpg', 3, 1); // Pared izquierda
+  createWall(35, 10, 0, 1, 20, 50, 'wall.jpg', 3, 1); // Pared derecha
+  createWall(0, 10, -25, 71, 20, 1, 'wall.jpg', 3, 1); // Pared fondo
 
   // Objetos para la conveyor belt
   createZConveyorBelt(-30, 0, -2.5);
@@ -296,17 +301,28 @@ function objectSetup(videoMaterial) {
   createLamp(20, 19.25, 0);
 
   // Creacion de la maquina interactuable
-  const machineObjects = createMachine(0, 0, 10);
-  const cylinders = machineObjects.cylinders;
-  const buttons = machineObjects.buttons;
+  const machineOneObjects = createMachine(-20, 0, -15, 0);
+  const machineTwoObjects = createMachine(0, 0, 10, 1);
+  const machineThreeObjects = createMachine(20, 0, -15, 2);
+
+  const cylinders = [
+    machineOneObjects.cylinders,
+    machineTwoObjects.cylinders,
+    machineThreeObjects.cylinders,
+  ];
+  const buttons = [
+    machineOneObjects.buttons,
+    machineTwoObjects.buttons,
+    machineThreeObjects.buttons,
+  ];
 
   // Creacion de la canasta al final de la cinta
-  createWall(30, 1, 15, 5, 0.3, 3, 'basket.jpg', 2, 1); // Piso de la canasta
-  createWall(27.5, 1.85, 15, 0.3, 2, 3, 'basket.jpg', 2, 1); // Pared izquierda
-  createWall(32.5, 1.85, 15, 0.3, 2, 3, 'basket.jpg', 2, 1); // Pared derecha
+  createWall(30, 1, 15.5, 5, 0.3, 5, 'basket.jpg', 2, 1); // Piso de la canasta
+  createWall(27.5, 1.85, 15.5, 0.3, 2, 5, 'basket.jpg', 2, 1); // Pared izquierda
+  createWall(32.5, 1.85, 15.5, 0.3, 2, 5, 'basket.jpg', 2, 1); // Pared derecha
 
-  createWall(30, 1.85, 13.65, 5, 2, 0.3, 'basket.jpg', 2, 1); // Pared frente
-  createWall(30, 1.85, 16.35, 5, 2, 0.3, 'basket.jpg', 2, 1); // Pared fondo
+  createWall(30, 1.85, 13.15, 5, 2, 0.3, 'basket.jpg', 2, 1); // Pared frente
+  createWall(30, 1.85, 17.85, 5, 2, 0.3, 'basket.jpg', 2, 1); // Pared fondo
 
   // Creacion de los planos texturizados para la cinta transportadora
   createTextureBelt(-30, 0, 4, 26, 0, videoMaterial);
@@ -381,12 +397,25 @@ function main() {
      a checar con el objeto
    - El indice del arreglo indica el segmento al que apunta
   */
-  const POINTS = [-15, -10, 10, 10, -15, 30, 15, 3];
+  const POINTS = [-15, -10, 10, 10, -15, 30, 15.5, 3];
 
 
   const cylinders = allObjects.cylinders;
-  const cylinderSpeeds = [Math.random() * (0.1 - 0.02) + 0.02,
-    Math.random()* (0.1 - 0.02) + 0.02, Math.random() * (0.1 - 0.02) + 0.02];
+  const cylinderSpeeds = [
+    [
+      Math.random() * (0.1 - 0.02) + 0.02,
+      Math.random()* (0.1 - 0.02) + 0.02,
+      Math.random() * (0.1 - 0.02) + 0.02,
+    ], [
+      Math.random() * (0.1 - 0.02) + 0.02,
+      Math.random()* (0.1 - 0.02) + 0.02,
+      Math.random() * (0.1 - 0.02) + 0.02,
+    ], [
+      Math.random() * (0.1 - 0.02) + 0.02,
+      Math.random()* (0.1 - 0.02) + 0.02,
+      Math.random() * (0.1 - 0.02) + 0.02,
+    ],
+  ];
   const CYLINDER_BOUNDS = {MAX: 10, MIN: 7.5};
 
   const buttons = allObjects.buttons;
@@ -427,13 +456,15 @@ function main() {
     const intersects = raycaster.intersectObjects( scene.children );
     if ( intersects.length > 0 ) {
       console.log('clicc');
-      if (intersects[0].object.userData.id in [0, 1, 2]) {
-        console.log(intersects[0].object.userData);
+      const userData = intersects[0].object.userData;
+      if (userData.id in [0, 1, 2]) {
+        MACHINE_STATUS[userData.machineId] = userData.id;
+        console.log(MACHINE_STATUS);
         for (let i = 0; i < buttons.length; i++) {
-          if (i === intersects[0].object.userData.id) {
-            buttons[i].position.z = 15.2;
+          if (i === userData.id) {
+            buttons[userData.machineId][i].position.z = userData.defaultZ - 0.3;
           } else {
-            buttons[i].position.z = 15.5;
+            buttons[userData.machineId][i].position.z = userData.defaultZ;
           }
         }
       }
@@ -443,11 +474,12 @@ function main() {
 
   // Fuente de luz para testing
 
-  const lightTop = new THREE.PointLight(0xFFFFFF, 1.8, 500);
-  lightTop.position.set(0, 17, 0);
+  const lightTop = new THREE.PointLight(0xFFFFFF, 1, 100);
+  lightTop.castShadow = true;
+  lightTop.position.set(0, 17, -1);
   scene.add(lightTop);
 
-  const lightDown = new THREE.PointLight(0xFFFFFF, 1.8, 500);
+  const lightDown = new THREE.PointLight(0xFFFFFF, 1.8, 100);
   lightDown.position.set(0, -30, 0);
   // scene.add(lightDown);
 
@@ -455,6 +487,19 @@ function main() {
   scene.add( light );
 
   animate(videoInformation);
+  /*
+  function getLight(scene) {
+    // SHADOW
+    var light = new THREE.PointLight( 0xffffff, 1, 100 );
+    light.position.set( 0, 10, -1 );
+    light.castShadow = true;            // default false
+    scene.add( light );
+
+    var ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+    scene.add(ambientLight);
+    return light;
+  }
+*/
 }
 
 main();
@@ -468,7 +513,7 @@ function updateConveyorObjects(conveyorObjects, POINTS) {
 
     switch (obj.pathSegment) {
       case 0:
-        obj.mesh.position.z -= 0.05;
+        obj.mesh.position.z -= VELOCITY;
         if (obj.mesh.position.z <= POINTS[0]) {
           if (i < conveyorObjects.length - 1) {
             conveyorObjects[i+1].startMoving = true;
@@ -480,29 +525,37 @@ function updateConveyorObjects(conveyorObjects, POINTS) {
         break;
 
       case 1:
-        obj.mesh.position.x += 0.05;
+        obj.mesh.position.x += VELOCITY;
         if (obj.mesh.position.x >= POINTS[1]) {
           obj.mesh.position.x = POINTS[1];
           obj.pathSegment++;
+        } else if (obj.mesh.position.x >= -25 && obj.mesh.position.x <= -15) {
+          // check status of machine buttons
+          // make changes to object accordingly
+          operateMachine(obj, 0);
         }
         break;
 
       case 2:
-        obj.mesh.position.z += 0.05;
+        obj.mesh.position.z += VELOCITY;
         if (obj.mesh.position.z >= POINTS[2]) {
           obj.mesh.position.z = POINTS[2];
           obj.pathSegment++;
         }
         break;
       case 3:
-        obj.mesh.position.x += 0.05;
+        obj.mesh.position.x += VELOCITY;
         if (obj.mesh.position.x >= POINTS[3]) {
           obj.mesh.position.x = POINTS[3];
           obj.pathSegment++;
+        } else if (obj.mesh.position.x >= -5 && obj.mesh.position.x <= 5) {
+          // check status of machine buttons
+          // make changes to object accordingly
+          operateMachine(obj, 1);
         }
         break;
       case 4:
-        obj.mesh.position.z -= 0.05;
+        obj.mesh.position.z -= VELOCITY;
         if (obj.mesh.position.z <= POINTS[4]) {
           obj.mesh.position.z = POINTS[4];
           obj.pathSegment++;
@@ -510,15 +563,19 @@ function updateConveyorObjects(conveyorObjects, POINTS) {
         break;
 
       case 5:
-        obj.mesh.position.x += 0.05;
+        obj.mesh.position.x += VELOCITY;
         if (obj.mesh.position.x >= POINTS[5]) {
           obj.mesh.position.x = POINTS[5];
           obj.pathSegment++;
+        } else if (obj.mesh.position.x >= 18 && obj.mesh.position.x <= 22) {
+          // check status of machine buttons
+          // make changes to object accordingly
+          operateMachine(obj, 2);
         }
         break;
 
       case 6:
-        obj.mesh.position.z += 0.05;
+        obj.mesh.position.z += VELOCITY;
         if (obj.mesh.position.z >= POINTS[6]) {
           obj.mesh.position.z = POINTS[6];
           obj.pathSegment++;
@@ -526,7 +583,8 @@ function updateConveyorObjects(conveyorObjects, POINTS) {
         break;
 
       case 7:
-        obj.mesh.position.y -= 0.05;
+        obj.mesh.position.y -= VELOCITY;
+        // obj.mesh.position.z -= VELOCITY;
         if (obj.mesh.position.y <= POINTS[7]) {
           obj.mesh.position.y = POINTS[7];
           obj.pathSegment++;
@@ -541,6 +599,7 @@ function updateConveyorObjects(conveyorObjects, POINTS) {
 
         if (conveyorObjects[index].mesh.position.y <= POINTS[7]) {
           obj.pathSegment = 0;
+          reset(obj);
           obj.mesh.position.set(-30, 5, 15);
         }
         break;
@@ -552,12 +611,14 @@ function updateConveyorObjects(conveyorObjects, POINTS) {
 }
 
 function updateMachineCylinders(cylinders, cylinderSpeeds, CYLINDER_BOUNDS) {
-  cylinders.forEach((cylinder, i) => {
-    cylinder.position.y += cylinderSpeeds[i];
-    if (cylinder.position.y > CYLINDER_BOUNDS.MAX ||
-      cylinder.position.y < CYLINDER_BOUNDS.MIN) {
-      cylinderSpeeds[i] *= -1;
-    }
+  cylinders.forEach((machine, i) => {
+    machine.forEach((cylinder, j) => {
+      cylinder.position.y += cylinderSpeeds[i][j];
+      if (cylinder.position.y > CYLINDER_BOUNDS.MAX ||
+        cylinder.position.y < CYLINDER_BOUNDS.MIN) {
+        cylinderSpeeds[i][j] *= -1;
+      }
+    });
   });
 }
 
@@ -593,32 +654,69 @@ function addVideoTexture() {
   };
 }
 
-/*
-
-var camera, scene, raycaster, renderer;
-  var mouse = new THREE.Vector2(), INTERSECTED;
-  var radius = 100;
-
-function onDocumentMouseDown( event ) {
-    event.preventDefault();
-    mouse.x = ( event.clientX / window.innerWidth ) * 2 - 1;
-    mouse.y = - ( event.clientY / window.innerHeight ) * 2 + 1;
-    // find intersections
-    raycaster.setFromCamera( mouse, camera );
-    var intersects = raycaster.intersectObjects( scene.children );
-    if ( intersects.length > 0 ) {
-      if ( INTERSECTED != intersects[ 0 ].object ) {
-        if ( INTERSECTED )
-          INTERSECTED.material.emissive.setHex( INTERSECTED.currentHex );
-        INTERSECTED = intersects[ 0 ].object;
-        INTERSECTED.currentHex = INTERSECTED.material.emissive.getHex();
-        INTERSECTED.material.emissive.setHex( 0xff0000 );
-         console.log(intersects.length);
+function operateMachine(object, machine) {
+  switch (machine) {
+    case 0:
+      switch (MACHINE_STATUS[0]) {
+        case 0:
+          object.mesh.material.metalness = 0;
+          break;
+        case 1:
+          object.mesh.material.metalness = 0.4;
+          break;
+        case 2:
+          object.mesh.material.metalness = 0.8;
+          break;
+        default:
+          console.error('INVALID MACHINE STATUS: ', MACHINE_STATUS);
       }
-    } else {
-      if ( INTERSECTED )
-        INTERSECTED.material.emissive.setHex( INTERSECTED.currentHex );
-      INTERSECTED = null;
-    }
+      break;
 
-*/
+    case 1:
+      switch (MACHINE_STATUS[1]) {
+        case 0:
+          object.mesh.material.color.setHex(0xff0000);
+          break;
+        case 1:
+          object.mesh.material.color.setHex(0x00ff00);
+          break;
+        case 2:
+          object.mesh.material.color.setHex(0x0000ff);
+          break;
+        default:
+          console.error('INVALID MACHINE STATUS: ', MACHINE_STATUS);
+      }
+      break;
+
+    case 2:
+      object.mesh.geometry.dispose();
+      switch (MACHINE_STATUS[2]) {
+        case 0:
+          object.mesh.geometry = new THREE.CylinderGeometry(0, 1, 4, 32);
+          break;
+
+        case 1:
+          object.mesh.geometry = new THREE.CylinderGeometry(0.8, 0.8, 4, 32);
+          break;
+
+        case 2:
+          object.mesh.geometry = new THREE.BoxGeometry(2.7, 2.7, 2.7);
+          break;
+
+        default:
+          console.error('INVALID MACHINE STATUS: ', MACHINE_STATUS);
+      }
+      break;
+  }
+
+  // object.mesh.material.roughness = 0.5;
+}
+
+function reset(object) {
+  object.mesh.material.color.setHex(0xFFFFFF);
+  // 0x00b8eb
+  object.mesh.material.metalness = 0;
+
+  object.mesh.geometry.dispose();
+  object.mesh.geometry = new THREE.SphereGeometry(1.5, 32, 32);
+}
