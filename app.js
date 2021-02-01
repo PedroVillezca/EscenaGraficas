@@ -1,3 +1,4 @@
+/* eslint-disable linebreak-style */
 /* eslint-disable require-jsdoc */
 /*
 Pedro Villezca A01282613
@@ -120,7 +121,11 @@ function createWall(x, y, z, width, height, depth,
 
 function createLamp(x, y, z) {
   // Material para la lampara
-  const materialBulb = new THREE.MeshLambertMaterial({color: 0xfffec8});
+  const materialBulb = new THREE.MeshLambertMaterial({
+    color: 0xfffec8,
+    emissive: 'white',
+
+  });
 
   const loader = new THREE.TextureLoader();
   const loadedTextureBase = loader.load('./textures/blackMetal.png');
@@ -152,6 +157,26 @@ function createLamp(x, y, z) {
   const lampLight = new THREE.Mesh(lampLightGeom, materialBulb);
   lampLight.position.set(x, y - 2.35, z);
   scene.add(lampLight);
+
+  // Fuente de luz
+  // white spotlight shining from the side, casting a shadow
+
+  const spotLight = new THREE.SpotLight(0xfff0c4, 1.5);
+  spotLight.position.set(x, y - 2.35, z);
+  spotLight.target.position.set(x, 0, z);
+  spotLight.penumbra = 0.25;
+
+  spotLight.castShadow = true;
+
+  spotLight.shadow.mapSize.width = 1024;
+  spotLight.shadow.mapSize.height = 1024;
+
+  spotLight.shadow.camera.near = 500;
+  spotLight.shadow.camera.far = 4000;
+  spotLight.shadow.camera.fov = 30;
+
+  scene.add(spotLight);
+  scene.add(spotLight.target);
 }
 
 function createMachine(x, y, z, machineId) {
@@ -335,9 +360,9 @@ function objectSetup(videoMaterial) {
   createXConveyorBelt(0, 0, 10);
 
   // Se crean las lamparas del techo
-  createLamp(-20, 19.25, 0);
+  createLamp(-20, 19.25, 15);
   createLamp(0, 19.25, 0);
-  createLamp(20, 19.25, 0);
+  createLamp(20, 19.25, -15);
 
   // Creacion de la maquina interactuable
   const machineOneObjects = createMachine(-20, 0, -15, 0);
@@ -497,11 +522,9 @@ function main() {
 
     const intersects = raycaster.intersectObjects( scene.children );
     if ( intersects.length > 0 ) {
-      console.log('clicc');
       const userData = intersects[0].object.userData;
       if (userData.id in [0, 1, 2]) {
         MACHINE_STATUS[userData.machineId] = userData.id;
-        console.log(MACHINE_STATUS);
         for (let i = 0; i < buttons.length; i++) {
           if (i === userData.id) {
             buttons[userData.machineId][i].position.z = userData.defaultZ - 0.3;
@@ -519,13 +542,13 @@ function main() {
   const lightTop = new THREE.PointLight(0xFFFFFF, 1, 100);
   lightTop.castShadow = true;
   lightTop.position.set(0, 17, -1);
-  scene.add(lightTop);
+  // scene.add(lightTop);
 
   const lightDown = new THREE.PointLight(0xFFFFFF, 1.8, 100);
   lightDown.position.set(0, -30, 0);
   // scene.add(lightDown);
 
-  const light = new THREE.AmbientLight( 0xFFFFFF, 0.5 ); // soft white light
+  const light = new THREE.AmbientLight(0xFFFFFF, 0.3); // soft white light
   scene.add( light );
 
   animate(videoInformation);
